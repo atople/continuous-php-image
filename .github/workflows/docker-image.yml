@@ -14,5 +14,19 @@ jobs:
     - name: Check out the codebase
       uses: actions/checkout@v4
 
-    - name: Build the docker image
-      run: docker build . -t atople/continuous-php-image
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with: 
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
+
+    - name: Login to ECR
+      run: aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/u0x3x9g5
+      
+
+    - name: Build, tag, and push the docker image
+      run: |
+        docker build . -t atople/continuous-php-image
+        docker tag atople/continuous-php-image:latest public.ecr.aws/u0x3x9g5/atople/continuous-php-image:latest
+        docker push public.ecr.aws/u0x3x9g5/atople/continuous-php-image:latest
